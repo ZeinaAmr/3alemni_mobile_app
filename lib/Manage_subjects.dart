@@ -7,6 +7,10 @@ import 'ProfilePage.dart';
 import 'course_page.dart';
 
 class SubjectsPage2 extends StatefulWidget {
+  final String? userId;
+
+  const SubjectsPage2({Key? key, this.userId}) : super(key: key);
+
   @override
   State<SubjectsPage2> createState() => _SubjectsPageState();
 }
@@ -20,25 +24,24 @@ class _SubjectsPageState extends State<SubjectsPage2> {
     {"title": "English Literature", "description": "Poetry, Drama, Fiction"},
   ];
 
-  int myIndex = 0; // Default to no selection, preventing errors
-
-  final List<Widget> _pages = [
-    HomePage(),
-    CalendarPage(),
-    ChatbotPage(),
-    MyProfilePage(),
-  ];
+  int myIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
       myIndex = index;
     });
 
-    // Only navigate if a valid index is selected
-    if (index >= 0 && index < _pages.length) {
+    final pages = [
+      HomePage(userId: widget.userId ?? ''),
+      CalendarPage(userId: widget.userId ?? ''),
+      ChatbotPage(),
+      MyProfilePage(userId: widget.userId ?? ''),
+    ];
+
+    if (index >= 0 && index < pages.length) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => _pages[index]),
+        MaterialPageRoute(builder: (context) => pages[index]),
       );
     }
   }
@@ -46,23 +49,23 @@ class _SubjectsPageState extends State<SubjectsPage2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar3(),
-
+      drawer: Sidebar3(), // pass userId if needed later
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           "Manage Subjects",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.add, color: Colors.black),
+            onPressed: () {
+              print("Add Subject");
+            },
+            icon: const Icon(Icons.add, color: Colors.black),
           ),
-
         ],
       ),
       body: Padding(
@@ -73,9 +76,7 @@ class _SubjectsPageState extends State<SubjectsPage2> {
             final subject = subjects[index];
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 5,
               color: Colors.white,
               child: ListTile(
@@ -83,32 +84,27 @@ class _SubjectsPageState extends State<SubjectsPage2> {
                   backgroundColor: const Color(0xFFFF7C34),
                   child: Text(
                     subject['title']![0],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
                 title: Text(
                   subject['title']!,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF000000),
-                  ),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF000000)),
                 ),
                 subtitle: Text(
                   subject['description']!,
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Color(0xFFFF7C34),
-                ),
+                trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFFFF7C34)),
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CoursesPage()),
+                    MaterialPageRoute(
+                      builder: (context) => CoursesPage(
+                        userId: widget.userId ?? '',
+                        subjectId: subject['title']!,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -118,40 +114,28 @@ class _SubjectsPageState extends State<SubjectsPage2> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         onTap: _onItemTapped,
-        currentIndex: myIndex, // Ensure valid index
+        currentIndex: myIndex,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF13A7B1), // Ensure selected icon is colored
+        selectedItemColor: const Color(0xFF13A7B1),
         unselectedItemColor: Colors.grey,
         selectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
         items: [
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              color: myIndex == 0 ? const Color(0xFF13A7B1) : Colors.grey, // Color for selected icon
-            ),
+            icon: Icon(Icons.home, color: myIndex == 0 ? const Color(0xFF13A7B1) : Colors.grey),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.calendar_today,
-              color: myIndex == 1 ? const Color(0xFF13A7B1) : Colors.grey,
-            ),
+            icon: Icon(Icons.calendar_today, color: myIndex == 1 ? const Color(0xFF13A7B1) : Colors.grey),
             label: 'Calendar',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.chat,
-              color: myIndex == 2 ? const Color(0xFF13A7B1) : Colors.grey,
-            ),
+            icon: Icon(Icons.chat, color: myIndex == 2 ? const Color(0xFF13A7B1) : Colors.grey),
             label: 'Chatbot',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.person,
-              color: myIndex == 3 ? const Color(0xFF13A7B1) : Colors.grey,
-            ),
+            icon: Icon(Icons.person, color: myIndex == 3 ? const Color(0xFF13A7B1) : Colors.grey),
             label: 'Profile',
           ),
         ],
@@ -159,12 +143,12 @@ class _SubjectsPageState extends State<SubjectsPage2> {
     );
   }
 }
+
 class AddCourseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Implement functionality to add a new course
         print("Add new course");
       },
       child: Container(
@@ -174,26 +158,18 @@ class AddCourseButton extends StatelessWidget {
           color: const Color(0xFFFF7C34),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey.shade300, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: const [
             Icon(Icons.add, color: Colors.white, size: 28),
             SizedBox(width: 8),
             Text(
               "Add Course",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
         ),
@@ -201,4 +177,3 @@ class AddCourseButton extends StatelessWidget {
     );
   }
 }
-

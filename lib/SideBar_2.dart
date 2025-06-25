@@ -3,7 +3,6 @@ import 'LoginPage.dart';
 import 'Teacher_profile.dart';
 import 'PostJobForm.dart';
 import 'teacher_dashboard.dart';
-import 'HomePage.dart';
 import 'Notifications2.dart';
 import 'calendar_page2.dart';
 import 'JobOffers.dart';
@@ -62,68 +61,47 @@ class Sidebar2 extends StatelessWidget {
             leading: Icon(Icons.person),
             title: Text('My Profile'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TeacherProfile()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfile()));
             },
           ),
-          SizedBox(height: 10),
           ListTile(
             leading: Icon(Icons.notifications),
             title: Text('Notifications'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationsPage2()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsPage2()));
             },
           ),
-
-          SizedBox(height: 10),
           ListTile(
             leading: Icon(Icons.library_books),
             title: Text('My Courses'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TeacherDashboard()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherDashboard()));
             },
           ),
-          SizedBox(height: 10),
-
           ListTile(
             leading: Icon(Icons.calendar_month),
-            title: Text('My calendar'),
+            title: Text('My Calendar'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CalendarPage2()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarPage2()));
             },
           ),
-          SizedBox(height: 10),
           ListTile(
             leading: Icon(Icons.work),
-            title: Text('Post Job offers'),
+            title: Text('Post Job Offers'),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => JobOffersPage()),
-              );
+              Navigator.push(context, MaterialPageRoute(builder: (_) => JobOffersPage()));
             },
           ),
-
           const SizedBox(height: 400),
           Divider(),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text('Logout'),
             onTap: () {
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (_) => LoginPage()),
+                    (route) => false,
               );
             },
           ),

@@ -1,9 +1,11 @@
-
 import 'package:flutter/material.dart';
 import 'SideBar.dart';
 import 'package:allemni/Flashcards.dart';
+
 class AIStudyScreen extends StatefulWidget {
-  AIStudyScreen({Key? key}) : super(key: key);
+  final String userId;
+
+  AIStudyScreen({required this.userId});
 
   @override
   _AIStudyScreenState createState() => _AIStudyScreenState();
@@ -21,18 +23,18 @@ class _AIStudyScreenState extends State<AIStudyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           "AI Study Tools",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
-        automaticallyImplyLeading: true, // Ensures the back button appears
-        iconTheme: const IconThemeData(color: Colors.black), // Ensure back button is visible
+        automaticallyImplyLeading: true,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
@@ -92,7 +94,9 @@ class _AIStudyScreenState extends State<AIStudyScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FlashcardsScreen()), // Navigate to Flashcards page
+                    MaterialPageRoute(
+                      builder: (context) => FlashcardsScreen(userId: widget.userId),
+                    ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -116,8 +120,8 @@ class _AIStudyScreenState extends State<AIStudyScreen> {
 
   Widget _buildOptionButton(IconData icon, String text) {
     return Container(
-      width: 160, // Fixed width for consistency
-      height: 120, // Fixed height for equal sizing
+      width: 160,
+      height: 120,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,

@@ -3,7 +3,10 @@ import 'Teachers_page.dart';
 import 'SideBar_3.dart';
 
 class ManageCenters extends StatelessWidget {
-  ManageCenters({Key? key}) : super(key: key);
+  final String? userId;
+
+  ManageCenters({Key? key, this.userId}) : super(key: key);
+
 
   final List<Map<String, String>> centers = [
     {"name": "IG Zone", "location": "Mohandessin, Lebanon Street", "image": "assets/igzone.jpeg"},
@@ -15,8 +18,7 @@ class ManageCenters extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar3(),
-
+      drawer: Sidebar3(), // ✅ Sidebar3 now receives userId
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -40,10 +42,9 @@ class ManageCenters extends StatelessWidget {
             final center = centers[index];
             return GestureDetector(
               onTap: () {
-                // ✅ Remove const here
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => TeachersPage()),
+                  MaterialPageRoute(builder: (context) => TeachersPage(userId: userId)), // ✅ Passing userId
                 );
               },
               child: Card(
@@ -105,4 +106,3 @@ class ManageCenters extends StatelessWidget {
     );
   }
 }
-

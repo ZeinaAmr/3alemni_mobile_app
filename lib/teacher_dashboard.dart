@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'SideBar_2.dart';
-import 'CourseDetailsPage.dart';
 
 class TeacherDashboard extends StatelessWidget {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for drawer
+  final String? userId; // updated name to match LoginPage
+
+  TeacherDashboard({Key? key,  this.userId}) : super(key: key);
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<Map<String, dynamic>> courses = [
     {
@@ -32,13 +35,12 @@ class TeacherDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey, // Assign key to control the drawer
+      key: _scaffoldKey,
       drawer: Sidebar2(),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
         actions: [
           IconButton(
             onPressed: () {},
@@ -67,7 +69,7 @@ class TeacherDashboard extends StatelessWidget {
             SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
-                itemCount: courses.length + 1, // Add one for the "+" button
+                itemCount: courses.length + 1,
                 itemBuilder: (context, index) {
                   if (index == courses.length) {
                     return AddCourseButton();
@@ -83,7 +85,7 @@ class TeacherDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Coursedetailspage(),
+                          builder: (context) => CourseDetailsPage(course: course),
                         ),
                       );
                     },
@@ -97,7 +99,6 @@ class TeacherDashboard extends StatelessWidget {
     );
   }
 }
-
 
 class CourseCard extends StatelessWidget {
   final String title;
@@ -148,36 +149,14 @@ class CourseCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                   ),
                   SizedBox(height: 4),
-                  Text(
-                    "Center: $center",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  Text("Center: $center", style: TextStyle(fontSize: 14, color: Colors.grey)),
                   SizedBox(height: 4),
-                  Text(
-                    "Timing: $timing",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  Text("Timing: $timing", style: TextStyle(fontSize: 14, color: Colors.grey)),
                   SizedBox(height: 4),
-                  Text(
-                    "$students Students Enrolled",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  Text("$students Students Enrolled", style: TextStyle(fontSize: 14, color: Colors.grey)),
                 ],
               ),
             ),
@@ -205,10 +184,7 @@ class CourseDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              course["title"],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            Text(course["title"], style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 16),
             Text("Center: ${course["center"]}"),
             Text("Timing: ${course["timing"]}"),
@@ -225,7 +201,6 @@ class AddCourseButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Implement functionality to add a new course
         print("Add new course");
       },
       child: Container(
@@ -236,25 +211,17 @@ class AddCourseButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.grey.shade300, width: 2),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
+            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: const [
             Icon(Icons.add, color: Colors.white, size: 28),
             SizedBox(width: 8),
             Text(
               "Add Course",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
         ),

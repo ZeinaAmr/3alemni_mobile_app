@@ -5,6 +5,9 @@ import 'chatbot_page.dart';
 import 'ProfilePage.dart';
 
 class CalendarPage extends StatefulWidget {
+  final String userId; // ✅ renamed
+
+  const CalendarPage({Key? key, required this.userId}) : super(key: key); // ✅ updated
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
@@ -27,7 +30,6 @@ class _CalendarPageState extends State<CalendarPage>
     {"title": "Computer Science Project", "date": "5 Dec, 2024", "time": "4:00 PM"},
     {"title": "Physics Lab", "date": "2 Dec, 2024", "time": "2:00 PM"},
   ];
-
 
   @override
   void initState() {
@@ -54,8 +56,8 @@ class _CalendarPageState extends State<CalendarPage>
           elevation: 3,
           color: Colors.white,
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: const Color(0xFFFF7C34),
+            leading: const CircleAvatar(
+              backgroundColor: Color(0xFFFF7C34),
               child: Icon(Icons.event, color: Colors.white),
             ),
             title: Text(
@@ -87,21 +89,19 @@ class _CalendarPageState extends State<CalendarPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: widget.userId), // ✅ updated
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "My Calendar",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
-
         backgroundColor: const Color(0xFFF8F9FC),
-
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: const Color(0xFFFFC229),
-          labelColor: Color(0xFF187E8A),
+          labelColor: const Color(0xFF187E8A),
           unselectedLabelColor: Colors.grey,
           tabs: const [
             Tab(text: "Assigned"),
@@ -118,7 +118,6 @@ class _CalendarPageState extends State<CalendarPage>
           _buildEventList(completedEvents),
         ],
       ),
-
     );
   }
 }

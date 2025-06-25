@@ -3,32 +3,29 @@ import 'centers_page.dart';
 import 'Teachers_page.dart';
 import 'LoginPage.dart';
 import 'SideBar.dart';
-import 'calendar_page.dart';
-import 'chatbot_page.dart';
-import 'ProfilePage.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final String? userId; // made optional
+
+  const HomePage({Key? key, this.userId}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: widget.userId ?? ''), // fallback to empty string
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
           "Home",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
-        ),centerTitle: true,
-
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
+        ),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -36,7 +33,6 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome Text
               const Text(
                 "Embark On Your Educational Journey",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
@@ -49,20 +45,16 @@ class _HomePageState extends State<HomePage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-
-              // Image
               Center(
                 child: Image.asset('assets/home.png', fit: BoxFit.contain),
               ),
               const SizedBox(height: 40),
-
-              // "Get Started" Button
               Center(
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -74,8 +66,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 40),
-
-              // Featured Centers Section
               _buildSectionTitle("Featured Centers"),
               _buildCardList([
                 CardData(name: "IG Zone", details: "Leading IGCSE Learning Center", imagePath: 'assets/igzone.jpeg'),
@@ -86,13 +76,10 @@ class _HomePageState extends State<HomePage> {
               _buildSeeMoreButton("See More", () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CentersPage()),
+                  MaterialPageRoute(builder: (context) => CentersPage(userId: widget.userId ?? '')),
                 );
               }),
-
               const SizedBox(height: 40),
-
-              // Top Teachers Section
               _buildSectionTitle("Top Teachers"),
               _buildCardList([
                 CardData(name: "Maram Hamed", details: "IGCSE Mathematics OL & IAL Teacher", imagePath: 'assets/Teacher1.jpg'),
@@ -102,14 +89,13 @@ class _HomePageState extends State<HomePage> {
               _buildSeeMoreButton("See More", () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => TeachersPage()),
+                  MaterialPageRoute(builder: (context) => TeachersPage(userId: widget.userId ?? '')),
                 );
               }),
             ],
           ),
         ),
       ),
-
     );
   }
 
@@ -164,7 +150,6 @@ class _HomePageState extends State<HomePage> {
                 Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
                 const SizedBox(height: 8),
                 Text(details, style: const TextStyle(fontSize: 14, color: Colors.black54)),
-                const SizedBox(height: 8),
               ],
             ),
           ),

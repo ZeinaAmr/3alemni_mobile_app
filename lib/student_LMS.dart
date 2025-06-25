@@ -1,21 +1,21 @@
-import 'package:allemni/QRScannerPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'AttendanceApp.dart';
-import 'Sidebar.dart';  // make sure to import your Sidebar widget
+import 'Sidebar.dart';
 
 class StudentLMS extends StatefulWidget {
+  final String courseId;
+  final String userId;
+
+  const StudentLMS({Key? key, required this.courseId, required this.userId}) : super(key: key);
+
   @override
   _StudentLMSState createState() => _StudentLMSState();
 }
 
 class _StudentLMSState extends State<StudentLMS> {
-  final Map<String, dynamic> course = {
-    "title": "Course Name",
-    "center": "Default Center",
-    "timing": "10:00 AM - 12:00 PM",
-    "students": 50,
-    "color": Colors.blueAccent,
-  };
+  Map<String, dynamic>? courseData;
+  bool isLoading = true;
 
   final Map<String, bool> _sections = {
     "General": true,
@@ -31,8 +31,31 @@ class _StudentLMSState extends State<StudentLMS> {
     "General": ["Course introduction", "Syllabus overview"],
     "Week 1": ["Topic 1", "Assignment 1"],
     "Week 2": ["Topic 2", "Quiz 1"],
-    // etc
   };
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCourseData();
+  }
+
+  Future<void> fetchCourseData() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('courses')
+        .doc(widget.courseId)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        courseData = doc.data();
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   void _toggleSection(String section) {
     setState(() {
@@ -44,11 +67,17 @@ class _StudentLMSState extends State<StudentLMS> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(course["title"]),
-        backgroundColor: course["color"],
+        title: Text(isLoading
+            ? "Loading..."
+            : (courseData?["title"] ?? "Course")),
+        backgroundColor: courseData != null ? Colors.teal : Colors.grey,
       ),
-      drawer: Sidebar(),  // <-- add your Sidebar here!
-      body: SingleChildScrollView(
+      drawer: Sidebar(userId: widget.userId),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : courseData == null
+          ? const Center(child: Text("Course not found"))
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,13 +87,13 @@ class _StudentLMSState extends State<StudentLMS> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    course["title"],
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    courseData?["title"] ?? "Course Name",
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text("Center: ${course["center"]}"),
-                  Text("Timing: ${course["timing"]}"),
-                  Text("${course["students"]} Students Enrolled"),
+                  Text("Center: ${courseData?["centerId"] ?? "Unknown"}"),
+                  Text("${courseData?["students"] ?? 0} Students Enrolled"),
                 ],
               ),
             ),
@@ -81,11 +110,15 @@ class _StudentLMSState extends State<StudentLMS> {
                         ListTile(
                           title: Text(
                             section,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
                           ),
                           trailing: IconButton(
                             icon: Icon(
-                              _sections[section]! ? Icons.expand_less : Icons.expand_more,
+                              _sections[section]!
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
                             ),
                             onPressed: () => _toggleSection(section),
                           ),
@@ -115,13 +148,20 @@ class _StudentLMSState extends State<StudentLMS> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const AttendanceApp (),
+                                          builder: (context) => AttendanceApp(
+                                            userId: widget.userId,
+                                            courseId: widget.courseId,
+                                          ),
                                         ),
                                       );
                                     },
                                     child: Text(
                                       "Take Attendance for $section",
-                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                               ],

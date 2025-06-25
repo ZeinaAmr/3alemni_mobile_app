@@ -3,6 +3,9 @@ import 'SideBar_3.dart';
 import 'CourseDetailsPage.dart';
 
 class AdminDashboard extends StatelessWidget {
+  final String userId;
+
+  AdminDashboard({Key? key, required this.userId}) : super(key: key);
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for drawer
 
   final List<Map<String, dynamic>> courses = [

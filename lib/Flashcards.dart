@@ -1,22 +1,12 @@
+// === FLASHCARDS.DART ===
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'SideBar.dart';
 
-void main() {
-  runApp(FlashcardsApp());
-}
-
-class FlashcardsApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: FlashcardsScreen(),
-    );
-  }
-}
-
 class FlashcardsScreen extends StatefulWidget {
+  final String userId;
+  FlashcardsScreen({required this.userId});
+
   @override
   _FlashcardsScreenState createState() => _FlashcardsScreenState();
 }
@@ -49,16 +39,15 @@ class _FlashcardsScreenState extends State<FlashcardsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Sidebar(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
           "Flashcards",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
-
-
       ),
       body: Center(
         child: GestureDetector(
@@ -100,8 +89,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen>
 
   Widget _buildCard({required String text, required Color color}) {
     return Container(
-      width: 400, // Increased width
-      height: 250, // Increased height
+      width: 400,
+      height: 250,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(15),
@@ -118,7 +107,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen>
         text,
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 20, // Slightly larger font size
+          fontSize: 20,
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),

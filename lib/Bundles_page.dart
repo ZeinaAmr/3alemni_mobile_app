@@ -1,33 +1,22 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'SideBar.dart';
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BundlesPage(),
-    );
-  }
-}
 
 class BundlesPage extends StatelessWidget {
+  final String userId; // ✅ changed from studentId
+
+  const BundlesPage({Key? key, required this.userId}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: userId), // ✅ updated here
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           "3alemni",
           style: TextStyle(
             color: Color(0xFF187E8A),
@@ -39,7 +28,7 @@ class BundlesPage extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
           child: Column(
-            children: [
+            children: const [
               Text(
                 "OUR BUNDLES",
                 style: TextStyle(
@@ -48,7 +37,7 @@ class BundlesPage extends StatelessWidget {
                   color: Color(0xFF187E8A),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               BundleCard(
                 title: "Starter Bundle",
                 price: "£200",
@@ -60,11 +49,11 @@ class BundlesPage extends StatelessWidget {
                   "Study Materials",
                   "1-Month Chatbot Support"
                 ],
-                ribbonIcon: Icons.star_border, // Bronze Icon
+                ribbonIcon: Icons.star_border,
                 iconColor: Color(0xFF8B5A2B),
                 borderColor: Color(0xFF8B5A2B),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               BundleCard(
                 title: "Pro Bundle",
                 price: "£500",
@@ -76,11 +65,11 @@ class BundlesPage extends StatelessWidget {
                   "Personalized Study Plans",
                   "3-Month Chatbot Support"
                 ],
-                ribbonIcon: Icons.star_half, // Silver Icon
+                ribbonIcon: Icons.star_half,
                 iconColor: Color(0xFFC0C0C0),
                 borderColor: Color(0xFFC0C0C0),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               BundleCard(
                 title: "Premium Bundle",
                 price: "£900",
@@ -92,7 +81,7 @@ class BundlesPage extends StatelessWidget {
                   "1-On-1 Tutoring",
                   "Lifetime Chatbot Support"
                 ],
-                ribbonIcon: Icons.star, // Gold Icon
+                ribbonIcon: Icons.star,
                 iconColor: Color(0xFFDAA520),
                 borderColor: Color(0xFFDAA520),
               ),
@@ -146,7 +135,6 @@ class BundleCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Top teal section
               Container(
                 height: 50,
                 decoration: const BoxDecoration(
@@ -177,7 +165,7 @@ class BundleCard extends StatelessWidget {
                       children: [
                         Text(
                           price,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF187E8A),
@@ -188,7 +176,6 @@ class BundleCard extends StatelessWidget {
                           duration,
                           style: const TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.normal,
                             color: Colors.black,
                           ),
                         ),
@@ -209,16 +196,9 @@ class BundleCard extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 4.0),
                           child: Row(
                             children: [
-                              const Icon(
-                                Icons.check,
-                                color: Color(0xFF187E8A),
-                                size: 18,
-                              ),
+                              const Icon(Icons.check, color: Color(0xFF187E8A), size: 18),
                               const SizedBox(width: 8),
-                              Text(
-                                feature,
-                                style: const TextStyle(fontSize: 14),
-                              ),
+                              Text(feature, style: const TextStyle(fontSize: 14)),
                             ],
                           ),
                         ),
@@ -229,7 +209,7 @@ class BundleCard extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFFF7C34),
+                        backgroundColor: const Color(0xFFFF7C34),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -238,10 +218,7 @@ class BundleCard extends StatelessWidget {
                       ),
                       child: const Text(
                         "Get Started",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.white),
                       ),
                     ),
                   ],
@@ -250,15 +227,10 @@ class BundleCard extends StatelessWidget {
             ],
           ),
         ),
-        // Place the icon (Bronze, Silver, or Gold) in the top right corner
         Positioned(
           top: 10,
           right: 10,
-          child: Icon(
-            ribbonIcon,
-            color: iconColor,
-            size: 40, // Adjust the icon size if necessary
-          ),
+          child: Icon(ribbonIcon, color: iconColor, size: 40),
         ),
       ],
     );

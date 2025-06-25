@@ -6,14 +6,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'student_LMS.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const AttendanceApp());
-}
-
 class AttendanceApp extends StatelessWidget {
-  const AttendanceApp({Key? key}) : super(key: key);
+  final String userId;
+  final String courseId;
+
+  const AttendanceApp({Key? key, required this.userId, required this.courseId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +24,7 @@ class AttendanceApp extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: const Color(0xFFFF7C34),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -37,19 +32,20 @@ class AttendanceApp extends StatelessWidget {
         cardTheme: CardTheme(
           color: Colors.white,
           elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
-      home: const AttendancePage(),
+      home: AttendancePage(userId: userId, courseId: courseId),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class AttendancePage extends StatefulWidget {
-  const AttendancePage({Key? key}) : super(key: key);
+  final String userId;
+  final String courseId;
+
+  const AttendancePage({Key? key, required this.userId, required this.courseId}) : super(key: key);
 
   @override
   State<AttendancePage> createState() => _AttendancePageState();
@@ -63,16 +59,47 @@ class _AttendancePageState extends State<AttendancePage> {
   Position? _currentPosition;
   final MapController _mapController = MapController();
 
-  final String studentId = 'student123';
-  final String classId = 'classA';
+  LatLng? classLocation;
+  String centerName = '';
+  String? logoUrl;
 
-  final LatLng classLocation = const LatLng(30.0038, 30.9086);
   final double allowedDistanceMeters = 100;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _loadCenterData();
+  }
+
+  Future<void> _loadCenterData() async {
+    try {
+      final courseDoc = await FirebaseFirestore.instance.collection('courses').doc(widget.courseId).get();
+      if (!courseDoc.exists) {
+        setState(() => _status = 'Course not found in Firestore.');
+        return;
+      }
+
+      final centerId = courseDoc['centerId'];
+
+      final centerDoc = await FirebaseFirestore.instance.collection('centers').doc(centerId).get();
+      if (!centerDoc.exists) {
+        setState(() => _status = 'Center not found in Firestore.');
+        return;
+      }
+
+      final latitude = double.parse(centerDoc['latitude'].toString());
+      final longitude = double.parse(centerDoc['longitude'].toString());
+
+      setState(() {
+        classLocation = LatLng(latitude, longitude);
+        centerName = centerDoc['name'];
+        logoUrl = centerDoc['image'];
+      });
+    } catch (e) {
+      setState(() {
+        _status = 'Failed to load center data: ${e.toString()}';
+      });
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -84,7 +111,7 @@ class _AttendancePageState extends State<AttendancePage> {
       });
     } catch (e) {
       setState(() {
-        _status = 'Error getting location: ${e.toString().replaceAll('Exception: ', '')}';
+        _status = 'Error getting location: ${e.toString()}';
       });
     }
   }
@@ -121,47 +148,54 @@ class _AttendancePageState extends State<AttendancePage> {
     try {
       Position position = await _determinePosition();
       final currentLatLng = LatLng(position.latitude, position.longitude);
-      final distance = _calculateDistanceMeters(currentLatLng, classLocation);
 
-      setState(() {
-        _currentPosition = position;
-      });
+      if (classLocation == null) {
+        setState(() {
+          _status = 'Center location not loaded yet.';
+          _loading = false;
+        });
+        return;
+      }
+
+      final distance = _calculateDistanceMeters(currentLatLng, classLocation!);
+
+      setState(() => _currentPosition = position);
 
       if (distance > allowedDistanceMeters) {
         setState(() {
-          _status = 'You are too far from class to $action.\nDistance: ${distance.toStringAsFixed(2)} m';
+          _status = 'Too far to $action. Distance: ${distance.toStringAsFixed(2)} m';
           _loading = false;
         });
         return;
       }
 
       await FirebaseFirestore.instance.collection('attendance').add({
-        'studentId': studentId,
-        'classId': classId,
+        'studentId': widget.userId,
+        'courseId': widget.courseId,
         'action': action,
         'timestamp': DateTime.now().toUtc(),
         'latitude': position.latitude,
         'longitude': position.longitude,
-        'distanceFromClassMeters': distance,
+        'distanceFromCenterMeters': distance,
       });
 
       setState(() {
-        _status = '$action successful!\nDistance: ${distance.toStringAsFixed(2)} m';
+        _status = '$action successful! Distance: ${distance.toStringAsFixed(2)} m';
         _checkedIn = action == 'checkin';
-        if (action == 'checkin') _lastCheckInTime = DateTime.now();
+        if (_checkedIn) _lastCheckInTime = DateTime.now();
       });
     } catch (e) {
       setState(() {
-        _status = 'Error: ${e.toString().replaceAll('Exception: ', '')}';
+        _status = 'Error: ${e.toString()}';
       });
     } finally {
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
   }
 
   Widget _buildMap() {
+    if (classLocation == null) return const Center(child: CircularProgressIndicator());
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
@@ -176,7 +210,7 @@ class _AttendancePageState extends State<AttendancePage> {
             ),
             CircleLayer(circles: [
               CircleMarker(
-                point: classLocation,
+                point: classLocation!,
                 color: Colors.orange.withOpacity(0.3),
                 borderColor: Colors.orange,
                 borderStrokeWidth: 2,
@@ -185,48 +219,19 @@ class _AttendancePageState extends State<AttendancePage> {
             ]),
             MarkerLayer(markers: [
               Marker(
-                point: classLocation,
+                point: classLocation!,
                 width: 40,
                 height: 40,
-                builder: (ctx) => const Icon(Icons.school, color: Colors.orange, size: 40),
+                builder: (_) => const Icon(Icons.school, color: Colors.orange, size: 40),
               ),
               if (_currentPosition != null)
                 Marker(
                   point: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
                   width: 40,
                   height: 40,
-                  builder: (ctx) => const Icon(Icons.person_pin_circle, color: Color(0xFFFF7C34), size: 40),
+                  builder: (_) => const Icon(Icons.person_pin_circle, color: Color(0xFFFF7C34), size: 40),
                 ),
             ]),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Icon(Icons.location_on, size: 48, color: Color(0xFF13A7B1)),
-            const SizedBox(height: 16),
-            Text(
-              _status,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-            if (_loading) const SizedBox(height: 16),
-            if (_loading) const CircularProgressIndicator(),
-            if (_lastCheckInTime != null && _checkedIn)
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Text(
-                  'Checked in at ${_lastCheckInTime!.hour}:${_lastCheckInTime!.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ),
           ],
         ),
       ),
@@ -236,23 +241,16 @@ class _AttendancePageState extends State<AttendancePage> {
   Widget _buildActionButton(String label, String action, IconData icon) {
     return ElevatedButton.icon(
       icon: Icon(icon, size: 24),
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
+      label: Text(label),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFFFF7C34),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         padding: const EdgeInsets.symmetric(vertical: 16),
-        minimumSize: const Size(250, 50), // width 250, height 50 minimum
+        minimumSize: const Size(250, 50),
       ),
       onPressed: _loading ? null : () => _sendAttendance(action),
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -265,32 +263,49 @@ class _AttendancePageState extends State<AttendancePage> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => StudentLMS()),
+              MaterialPageRoute(builder: (context) => StudentLMS(courseId: widget.courseId,
+                userId: widget.userId,
+              ),),
             );
           },
         ),
-        title: const Text(
-          '3allemni Attendance',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('3allemni Attendance', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.black),
-            tooltip: 'Refresh Location',
             onPressed: _getCurrentLocation,
           ),
         ],
       ),
-
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             _buildMap(),
             const SizedBox(height: 16),
-            _buildStatusCard(),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    const Icon(Icons.location_on, size: 48, color: Color(0xFF13A7B1)),
+                    const SizedBox(height: 16),
+                    Text(_status, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500), textAlign: TextAlign.center),
+                    if (_loading) const SizedBox(height: 16),
+                    if (_loading) const CircularProgressIndicator(),
+                    if (_lastCheckInTime != null && _checkedIn)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Text(
+                          'Checked in at ${_lastCheckInTime!.hour}:${_lastCheckInTime!.minute.toString().padLeft(2, '0')}',
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             if (!_checkedIn) _buildActionButton('Check In', 'checkin', Icons.login),
             if (!_checkedIn) const SizedBox(height: 16),
@@ -301,21 +316,18 @@ class _AttendancePageState extends State<AttendancePage> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'Class Location Info',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 12),
+                  children: [
+                    const Text('Center Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
                     ListTile(
-                      leading: Icon(Icons.location_pin, color: Color(0xFF13A7B1)),
-                      title: Text('Classroom A'),
-                      subtitle: Text('Main Building, Floor 3'),
+                      leading: const Icon(Icons.location_pin, color: Color(0xFF13A7B1)),
+                      title: Text(centerName.isNotEmpty ? centerName : 'Loading...'),
+                      subtitle: const Text('Location loaded from Firestore'),
                     ),
-                    ListTile(
+                    const ListTile(
                       leading: Icon(Icons.timer, color: Color(0xFF13A7B1)),
                       title: Text('Allowed Distance'),
-                      subtitle: Text('100 meters from class'),
+                      subtitle: Text('100 meters from center'),
                     ),
                   ],
                 ),

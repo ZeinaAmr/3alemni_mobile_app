@@ -1,52 +1,98 @@
-import 'package:allemni/student_LMS.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar.dart';
-import 'CourseDetailsPage.dart';
 import 'student_LMS.dart';
-class StudentDashboard extends StatelessWidget {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for drawer
 
-  final List<Map<String, dynamic>> courses = [
-    {
-      "title": "Mathematics OL",
-      "center": "Tech Academy",
-      "timing": "Mon-Wed 6:00 PM - 8:00 PM",
-      "students": 25,
-      "color": Colors.blue,
-    },
-    {
-      "title": "Mathematics AS",
-      "center": "Data Hub",
-      "timing": "Tue-Thu 5:00 PM - 7:00 PM",
-      "students": 40,
-      "color": Colors.green,
-    },
-    {
-      "title": "Mathematics A2",
-      "center": "AI Institute",
-      "timing": "Sat-Sun 4:00 PM - 6:00 PM",
-      "students": 35,
-      "color": Colors.orange,
-    },
-  ];
+class StudentDashboard extends StatefulWidget {
+  final String userId;
+
+  const StudentDashboard({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  _StudentDashboardState createState() => _StudentDashboardState();
+}
+
+class _StudentDashboardState extends State<StudentDashboard> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late Future<List<Map<String, dynamic>>> _enrolledCoursesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _enrolledCoursesFuture = fetchEnrolledCourses();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchEnrolledCourses() async {
+    final enrollmentSnapshot = await FirebaseFirestore.instance
+        .collection('enrollments')
+        .where('studentId', isEqualTo: widget.userId)
+        .get();
+
+    List<Map<String, dynamic>> courses = [];
+
+    for (var enrollment in enrollmentSnapshot.docs) {
+      final courseId = enrollment['courseId'];
+
+      final courseDoc = await FirebaseFirestore.instance
+          .collection('courses')
+          .doc(courseId)
+          .get();
+
+      if (courseDoc.exists) {
+        final courseData = courseDoc.data()!;
+        final centerId = courseData['centerId'];
+        final subjectId = courseData['subjectId'];
+        final teacherId = courseData['teacherId'];
+
+        final centerDoc = await FirebaseFirestore.instance
+            .collection('centers')
+            .doc(centerId)
+            .get();
+
+        final subjectDoc = await FirebaseFirestore.instance
+            .collection('subjects')
+            .doc(subjectId)
+            .get();
+
+        final teacherDoc = await FirebaseFirestore.instance
+            .collection('teachers')
+            .doc(teacherId)
+            .get();
+
+        final centerName = centerDoc.data()?['name'] ?? 'Unknown Center';
+        final subjectTitle = subjectDoc.data()?['title'] ?? 'Unknown Subject';
+        final teacherName = teacherDoc.data()?['name'] ?? 'Unknown Teacher';
+
+        courses.add({
+          'courseId': courseId,
+          'title': "$subjectTitle with $teacherName",
+          'center': centerName,
+          'timing': enrollment['sessionTime'] ?? 'No Time',
+          'students': courseData['students'] ?? 0,
+          'color': Colors.teal,
+        });
+      }
+    }
+
+    return courses;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey, // Assign key to control the drawer
-      drawer: Sidebar(),
+      key: _scaffoldKey,
+      drawer: Sidebar(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
-        actions: [
+        actions: const [
           IconButton(
-            onPressed: () {},
+            onPressed: null,
             icon: Icon(Icons.search, color: Colors.black),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: null,
             icon: Icon(Icons.filter_alt_rounded, color: Colors.black),
           ),
           SizedBox(width: 10),
@@ -57,7 +103,7 @@ class StudentDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Enrolled Courses",
               style: TextStyle(
                 fontSize: 28,
@@ -65,27 +111,43 @@ class StudentDashboard extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: courses.length + 1, // Add one for the "+" button
-                itemBuilder: (context, index) {
-                  if (index == courses.length) {
-                    return AddCourseButton();
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _enrolledCoursesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
                   }
-                  final course = courses[index];
-                  return CourseCard(
-                    title: course["title"],
-                    center: course["center"],
-                    timing: course["timing"],
-                    students: course["students"],
-                    color: course["color"],
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => StudentLMS(),
-                        ),
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text("No enrolled courses found."));
+                  }
+
+                  final courses = snapshot.data!;
+
+                  return ListView.builder(
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course = courses[index];
+                      return CourseCard(
+                        title: course['title'],
+                        center: course['center'],
+                        timing: course['timing'],
+                        students: course['students'],
+                        color: course['color'],
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StudentLMS(
+                                courseId: course['courseId'],
+                                userId: widget.userId,
+
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -99,7 +161,6 @@ class StudentDashboard extends StatelessWidget {
   }
 }
 
-
 class CourseCard extends StatelessWidget {
   final String title;
   final String center;
@@ -108,7 +169,7 @@ class CourseCard extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  CourseCard({
+  const CourseCard({
     required this.title,
     required this.center,
     required this.timing,
@@ -127,7 +188,7 @@ class CourseCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 10,
@@ -142,119 +203,44 @@ class CourseCard extends StatelessWidget {
               child: Icon(Icons.school, color: color),
               radius: 24,
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     "Center: $center",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     "Timing: $timing",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     "$students Students Enrolled",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CourseDetailsPage extends StatelessWidget {
-  final Map<String, dynamic> course;
-
-  CourseDetailsPage({required this.course});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(course["title"]),
-        backgroundColor: course["color"],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              course["title"],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            Text("Center: ${course["center"]}"),
-            Text("Timing: ${course["timing"]}"),
-            Text("Students Enrolled: ${course["students"]}"),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class AddCourseButton extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Implement functionality to add a new course
-        print("Add new course");
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16.0),
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFF7C34),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade300, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add, color: Colors.white, size: 28),
-            SizedBox(width: 8),
-            Text(
-              "Add Course",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
           ],

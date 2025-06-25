@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'SideBar.dart';
+
 class NotificationsPage extends StatelessWidget {
-  final List<Map<String, String>> notifications = [
+  final String userId; // ✅ updated
+
+  const NotificationsPage({Key? key, required this.userId}) : super(key: key); // ✅ updated
+
+  final List<Map<String, String>> notifications = const [
     {
       "sender": "Ahmed Khafagah",
       "message": "uploaded an assignment.",
@@ -27,16 +32,19 @@ class NotificationsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: userId), // ✅ updated
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
           "Notications",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF187E8A),
+          ),
         ),
         centerTitle: true,
-
       ),
       body: ListView.builder(
         itemCount: notifications.length,
@@ -50,9 +58,9 @@ class NotificationsPage extends StatelessWidget {
             ),
             elevation: 3,
             child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFFFFC229),
-                child: const Icon(Icons.notifications, color: Colors.white),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFFFC229),
+                child: Icon(Icons.notifications, color: Colors.white),
               ),
               title: Text(
                 "${notification['sender']} ${notification['message']}",
@@ -68,7 +76,7 @@ class NotificationsPage extends StatelessWidget {
               ),
               trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
               onTap: () {
-                // Add navigation or details functionality here
+                // Optional: Add navigation to a detail view
               },
             ),
           );

@@ -13,7 +13,12 @@ import 'student_dashboard.dart';
 import 'calendar_page.dart';
 import 'chatbot_page.dart';
 import 'student_LMS.dart';
+
 class Sidebar extends StatelessWidget {
+  final String? userId; // made nullable to fix type errors
+
+  const Sidebar({Key? key, this.userId}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -22,24 +27,24 @@ class Sidebar extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFFFFC482), Color(0xFFD85E09)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            padding: EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
+            padding: const EdgeInsets.only(top: 40.0, left: 16.0, right: 16.0, bottom: 16.0),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 40,
                   backgroundImage: AssetImage('assets/Teacher4.jpg'),
                 ),
-                SizedBox(width: 16.0),
+                const SizedBox(width: 16.0),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Text(
                       'Zeina',
                       style: TextStyle(
@@ -62,113 +67,105 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
+
           const SizedBox(height: 10),
 
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('My Profile'),
+            leading: const Icon(Icons.library_books),
+            title: const Text('My Courses'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyProfilePage()),
-              );
-            },
-          ),
-
-
-          ListTile(
-            leading: Icon(Icons.home_filled),
-            title: Text('Home'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
+                MaterialPageRoute(
+                  builder: (context) => StudentDashboard(userId: userId!),
+                ),
               );
             },
           ),
 
           ListTile(
-            leading: Icon(Icons.library_books),
-            title: Text('My Courses'),
+            leading: const Icon(Icons.person),
+            title: const Text('My Profile'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => StudentDashboard()),
+                MaterialPageRoute(builder: (context) => MyProfilePage(userId: userId!)),
               );
             },
           ),
-          SizedBox(height: 10),
-
           ListTile(
-            leading: Icon(Icons.mail),
-            title: Text('Notifications'),
+            leading: const Icon(Icons.home_filled),
+            title: const Text('Home'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => NotificationsPage()),
+                MaterialPageRoute(builder: (context) => HomePage(userId: userId!)),
               );
             },
           ),
-
-
           ListTile(
-            leading: Icon(Icons.calendar_month),
-            title: Text('My Calendar'),
+            leading: const Icon(Icons.mail),
+            title: const Text('Notifications'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CalendarPage()),
+                MaterialPageRoute(builder: (context) => NotificationsPage(userId: userId!)),
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.book),
-            title: Text('Subjects'),
+            leading: const Icon(Icons.calendar_month),
+            title: const Text('My Calendar'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SubjectsPage()),
+                MaterialPageRoute(builder: (context) => CalendarPage(userId: userId!)),
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.store),
-            title: Text('Centers'),
+            leading: const Icon(Icons.book),
+            title: const Text('Subjects'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CentersPage()),
+                MaterialPageRoute(builder: (context) => SubjectsPage(userId: userId!)),
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Teachers'),
+            leading: const Icon(Icons.store),
+            title: const Text('Centers'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TeachersPage()),
+                MaterialPageRoute(builder: (context) => CentersPage(userId: userId!)),
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.auto_awesome),
-            title: Text('AI Study Tools'),
+            leading: const Icon(Icons.person),
+            title: const Text('Teachers'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AIStudyScreen()),
+                MaterialPageRoute(builder: (context) => TeachersPage(userId: userId!)),
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.smart_toy_outlined),
-            title: Text('Chatbot'),
+            leading: const Icon(Icons.auto_awesome),
+            title: const Text('AI Study Tools'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AIStudyScreen(userId: userId!)),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.smart_toy_outlined),
+            title: const Text('Chatbot'),
             onTap: () {
               Navigator.push(
                 context,
@@ -176,26 +173,25 @@ class Sidebar extends StatelessWidget {
               );
             },
           ),
-
           ListTile(
-            leading: Icon(Icons.card_giftcard),
-            title: Text('Bundles'),
+            leading: const Icon(Icons.card_giftcard),
+            title: const Text('Bundles'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BundlesPage()),
+                MaterialPageRoute(builder: (context) => BundlesPage(userId: userId!)),
               );
             },
           ),
           const SizedBox(height: 100),
-          Divider(),
+          const Divider(),
           ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Logout'),
+            leading: const Icon(Icons.logout),
+            title: const Text('Logout'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
           ),
