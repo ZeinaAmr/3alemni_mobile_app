@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
-import 'navbar_wrapper.dart';
+
 import 'SideBar.dart';
 
 class MyProfilePage extends StatelessWidget {
-  const MyProfilePage({Key? key}) : super(key: key);
+  final String userId; // ✅ updated
+
+  const MyProfilePage({Key? key, required this.userId}) : super(key: key); // ✅ updated
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: userId), // ✅ updated
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         title: const Text(
           "My Profile",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
-
         backgroundColor: Colors.white,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -30,11 +30,11 @@ class MyProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              "Zeina Amr",  // Replace with dynamic data
+              "Zeina Amr", // TODO: Replace with dynamic user data from Firestore
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const Text(
-              "zeina@example.com",  // Replace with dynamic data
+              "zeina@example.com", // TODO: Replace with dynamic email
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 20),
@@ -42,7 +42,7 @@ class MyProfilePage extends StatelessWidget {
               child: ListTile(
                 leading: const Icon(Icons.person),
                 title: const Text("Role"),
-                subtitle: const Text("Student"), // Replace with dynamic data
+                subtitle: const Text("Student"), // TODO: Replace with dynamic role
               ),
             ),
             const SizedBox(height: 10),
@@ -50,7 +50,7 @@ class MyProfilePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                  MaterialPageRoute(builder: (context) => EditProfilePage(userId: userId)), // ✅ updated
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -64,17 +64,19 @@ class MyProfilePage extends StatelessWidget {
           ],
         ),
       ),
-
     );
   }
 }
+
 class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({Key? key}) : super(key: key);
+  final String userId; // ✅ updated
+
+  const EditProfilePage({Key? key, required this.userId}) : super(key: key); // ✅ updated
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: Sidebar(userId: userId), // ✅ updated
       appBar: AppBar(
         title: const Text("Edit Profile"),
         backgroundColor: const Color(0xFF13A7B1),
@@ -111,7 +113,7 @@ class EditProfilePage extends StatelessWidget {
                 DropdownMenuItem(child: Text("Assistant"), value: "Assistant"),
               ],
               onChanged: (value) {
-                // Handle role change
+                // TODO: Handle role change and update Firestore if needed
               },
               decoration: InputDecoration(
                 labelText: "Role",
