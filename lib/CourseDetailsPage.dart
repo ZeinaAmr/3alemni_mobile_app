@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'AttendanceApp.dart';
+import 'FaceAttendanceApp.dart';
+import 'qr_generator.dart';
 
 class Coursedetailspage extends StatefulWidget {
-  const Coursedetailspage({Key? key}) : super(key: key);
+  final String courseId;
+  final String userId;
+
+  const Coursedetailspage({Key? key, required this.courseId, required this.userId}) : super(key: key);
+
 
   @override
   _CoursedetailsState createState() => _CoursedetailsState();
@@ -13,7 +20,7 @@ class _CoursedetailsState extends State<Coursedetailspage> {
     "center": "Default Center",
     "timing": "10:00 AM - 12:00 PM",
     "students": 50,
-    "color": Colors.blueAccent, // Default color
+    "color": Colors.blueAccent,
   };
 
   final Map<String, bool> _sections = {
@@ -158,6 +165,31 @@ class _CoursedetailsState extends State<Coursedetailspage> {
                                   onPressed: () => _addActivity(section),
                                   child: const Text("Add Activity", style: TextStyle(color: Color(0xFF13A7B1))),
                                 ),
+                                if (section.startsWith("Week")) ...[
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.location_on),
+                                    label: const Text("Take Attendance",style: TextStyle(color: Colors.white),),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                    ),
+                                    onPressed: () {
+                                      if (widget.userId != null && widget.courseId != null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => QRGeneratorPage(
+                                              userId: widget.userId!,
+                                              courseId: widget.courseId!,
+                                              classId: widget.courseId,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+
+                                ]
                               ],
                             ),
                           ),

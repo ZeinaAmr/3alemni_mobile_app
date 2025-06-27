@@ -6,6 +6,7 @@ class AdminDashboard extends StatelessWidget {
   final String userId;
 
   AdminDashboard({Key? key, required this.userId}) : super(key: key);
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key for drawer
 
   final List<Map<String, dynamic>> courses = [
@@ -86,7 +87,8 @@ class AdminDashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Coursedetailspage(),
+                          builder: (context) => Coursedetailspage(courseId: course["title"], // or use a real course ID if you have one
+                            userId: userId,),
                         ),
                       );
                     },

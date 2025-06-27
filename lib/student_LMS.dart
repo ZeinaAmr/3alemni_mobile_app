@@ -170,8 +170,7 @@ class _StudentLMSState extends State<StudentLMS> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => FaceAttendanceApp(
-                                            userId: widget.userId,
-                                            courseId: widget.courseId,
+
                                           ),
                                         ),
                                       );

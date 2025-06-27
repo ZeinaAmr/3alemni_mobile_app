@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar_2.dart';
 import 'create_course.dart';
 import 'teacher_lms.dart';
+import 'package:allemni/CourseDetailsPage.dart';
 class TeacherDashboard extends StatefulWidget {
   final String userId;
 
@@ -109,7 +110,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => TeacherLms(
+                              builder: (context) => Coursedetailspage(
                                 courseId: course["title"], // or use a real course ID if you have one
                                 userId: widget.userId,
                               ),
