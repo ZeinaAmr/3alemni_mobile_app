@@ -1,14 +1,16 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-void main() {
-  runApp(FaceAttendanceApp());
-}
 
 class FaceAttendanceApp extends StatelessWidget {
+  final String userId;
+  final String courseId;
+
+  const FaceAttendanceApp({Key? key, required this.userId, required this.courseId}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
