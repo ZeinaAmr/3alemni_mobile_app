@@ -3,17 +3,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar.dart';
 import 'enroll_page.dart';
 
-class CoursesPage extends StatelessWidget {
+class CoursesPage extends StatefulWidget {
   final String userId;
   final String? subjectId;
 
   const CoursesPage({Key? key, required this.userId, this.subjectId}) : super(key: key);
 
+  @override
+  _CoursesPageState createState() => _CoursesPageState();
+}
+
+class _CoursesPageState extends State<CoursesPage> {
+  String _searchText = '';
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
   bool _isNetworkImage(String path) => path.startsWith('http');
 
   Widget _buildCourseImage(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) {
-      return Container(height: 180, color: Colors.grey.shade200);
+      return Image.asset('assets/default.jpg', height: 180, width: double.infinity, fit: BoxFit.cover);
     }
     return _isNetworkImage(imagePath)
         ? Image.network(imagePath, height: 180, width: double.infinity, fit: BoxFit.cover)
@@ -30,26 +39,93 @@ class CoursesPage extends StatelessWidget {
     };
   }
 
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Filter Options", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  // TODO: Add filter logic
+                  Navigator.pop(context);
+                },
+                child: const Text("Apply Filter"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(userId: userId),
+      drawer: Sidebar(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text("Courses", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A))),
         centerTitle: true,
-        actions: const [
-          IconButton(onPressed: null, icon: Icon(Icons.search, color: Colors.black)),
-          IconButton(onPressed: null, icon: Icon(Icons.filter_alt_rounded, color: Colors.black)),
-          SizedBox(width: 10),
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Search by teacher or subject...',
+            border: InputBorder.none,
+          ),
+        )
+            : const Text(
+          "Courses",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search, color: Colors.black),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) _searchController.clear();
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.filter_alt_rounded, color: Colors.black),
+            onPressed: _showFilterDialog,
+          ),
+          const SizedBox(width: 10),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: StreamBuilder<QuerySnapshot>(
-          stream: subjectId != null
-              ? FirebaseFirestore.instance.collection('courses').where('subjectId', isEqualTo: subjectId).snapshots()
+          stream: widget.subjectId != null
+              ? FirebaseFirestore.instance
+              .collection('courses')
+              .where('subjectId', isEqualTo: widget.subjectId)
+              .snapshots()
               : FirebaseFirestore.instance.collection('courses').snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -77,6 +153,12 @@ class CoursesPage extends StatelessWidget {
 
                     final teacher = extraSnapshot.data!['teacher'];
                     final subject = extraSnapshot.data!['subject'];
+
+                    if (_searchText.isNotEmpty &&
+                        !(teacher.toLowerCase().contains(_searchText) ||
+                            subject.toLowerCase().contains(_searchText))) {
+                      return const SizedBox(); // Filter out
+                    }
 
                     return Card(
                       color: Colors.white,
@@ -143,7 +225,7 @@ class CoursesPage extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => EnrollCoursePage(courseId: courseId, userId: userId),
+                                          builder: (context) => EnrollCoursePage(courseId: courseId, userId: widget.userId),
                                         ),
                                       );
                                     },
