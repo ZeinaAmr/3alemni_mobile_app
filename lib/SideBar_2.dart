@@ -8,6 +8,9 @@ import 'calendar_page2.dart';
 import 'JobOffers.dart';
 
 class Sidebar2 extends StatelessWidget {
+  final String userId;
+
+  const Sidebar2({Key? key, required this.userId}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -61,35 +64,35 @@ class Sidebar2 extends StatelessWidget {
             leading: Icon(Icons.person),
             title: Text('My Profile'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfile()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherProfile(userId: userId,)));
             },
           ),
           ListTile(
             leading: Icon(Icons.notifications),
             title: Text('Notifications'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsPage2()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsPage2(userId: userId)));
             },
           ),
           ListTile(
             leading: Icon(Icons.library_books),
             title: Text('My Courses'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherDashboard()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherDashboard(userId: userId)));
             },
           ),
           ListTile(
             leading: Icon(Icons.calendar_month),
             title: Text('My Calendar'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarPage2()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarPage2(userId: userId)));
             },
           ),
           ListTile(
             leading: Icon(Icons.work),
             title: Text('Post Job Offers'),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => JobOffersPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => JobOffersPage(userId: userId)));
             },
           ),
           const SizedBox(height: 400),

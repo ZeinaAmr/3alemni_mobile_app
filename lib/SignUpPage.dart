@@ -1,3 +1,5 @@
+import 'package:allemni/FaceRegistrationPage.dart';
+import 'package:allemni/fmain.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'LoginPage.dart';

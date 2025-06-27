@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'SideBar_2.dart';
 class NotificationsPage2 extends StatelessWidget {
+  final String userId;
+
+  NotificationsPage2({Key? key, required this.userId}) : super(key: key);
   final List<Map<String, String>> notifications = [
     {
       "sender": "Ahmed Samir",
@@ -27,7 +30,7 @@ class NotificationsPage2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar2(),
+      drawer: Sidebar2(userId: userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,

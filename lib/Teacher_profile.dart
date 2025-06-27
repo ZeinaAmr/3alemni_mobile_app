@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'SideBar_2.dart';
 
 class TeacherProfile extends StatelessWidget {
-  const TeacherProfile({Key? key}) : super(key: key);
+  final String userId;
+  const TeacherProfile({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar2(),
+      drawer: Sidebar2(userId: userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         title: const Text(
@@ -49,7 +50,7 @@ class TeacherProfile extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                  MaterialPageRoute(builder: (context) => EditProfilePage(userId:userId)),
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -68,12 +69,14 @@ class TeacherProfile extends StatelessWidget {
   }
 }
 class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({Key? key}) : super(key: key);
+  final String userId;
+
+  const EditProfilePage({Key? key, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar2(),
+      drawer: Sidebar2(userId: userId),
       appBar: AppBar(
         title: const Text("Edit Profile"),
         backgroundColor: const Color(0xFF13A7B1),

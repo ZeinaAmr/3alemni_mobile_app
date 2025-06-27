@@ -1,3 +1,4 @@
+import 'package:allemni/calendar_page.dart';
 import 'package:flutter/material.dart';
 import 'SideBar_2.dart';
 import 'HomePage.dart';
@@ -5,6 +6,9 @@ import 'chatbot_page.dart';
 import 'ProfilePage.dart';
 
 class CalendarPage2 extends StatefulWidget {
+  final String userId;
+
+  const CalendarPage2({Key? key, required this.userId}) : super(key: key);
   @override
   _CalendarPageState2 createState() => _CalendarPageState2();
 }
@@ -87,7 +91,7 @@ class _CalendarPageState2 extends State<CalendarPage2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar2(),
+      drawer: Sidebar2(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         title: const Text(
