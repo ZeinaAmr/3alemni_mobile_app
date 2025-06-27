@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'student_LMS.dart';
+import 'qr_scanner.dart';
 
 class AttendanceApp extends StatelessWidget {
   final String userId;
@@ -15,7 +16,7 @@ class AttendanceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '3allemni Attendance',
+      title: '3alemni Attendance',
       theme: ThemeData(
         fontFamily: 'Roboto',
         scaffoldBackgroundColor: Colors.white,
@@ -63,7 +64,7 @@ class _AttendancePageState extends State<AttendancePage> {
   String centerName = '';
   String? logoUrl;
 
-  final double allowedDistanceMeters = 100;
+  final double allowedDistanceMeters = 500;
 
   @override
   void initState() {
@@ -80,7 +81,6 @@ class _AttendancePageState extends State<AttendancePage> {
       }
 
       final centerId = courseDoc['centerId'];
-
       final centerDoc = await FirebaseFirestore.instance.collection('centers').doc(centerId).get();
       if (!centerDoc.exists) {
         setState(() => _status = 'Center not found in Firestore.');
@@ -98,20 +98,6 @@ class _AttendancePageState extends State<AttendancePage> {
     } catch (e) {
       setState(() {
         _status = 'Failed to load center data: ${e.toString()}';
-      });
-    }
-  }
-
-  Future<void> _getCurrentLocation() async {
-    try {
-      Position position = await _determinePosition();
-      setState(() {
-        _currentPosition = position;
-        _mapController.move(LatLng(position.latitude, position.longitude), 15);
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Error getting location: ${e.toString()}';
       });
     }
   }
@@ -154,11 +140,13 @@ class _AttendancePageState extends State<AttendancePage> {
           _status = 'Center location not loaded yet.';
           _loading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Center location not loaded'), backgroundColor: Colors.red),
+        );
         return;
       }
 
       final distance = _calculateDistanceMeters(currentLatLng, classLocation!);
-
       setState(() => _currentPosition = position);
 
       if (distance > allowedDistanceMeters) {
@@ -166,6 +154,9 @@ class _AttendancePageState extends State<AttendancePage> {
           _status = 'Too far to $action. Distance: ${distance.toStringAsFixed(2)} m';
           _loading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Checkout failed: Too far from center (${distance.toStringAsFixed(2)} m)'), backgroundColor: Colors.red),
+        );
         return;
       }
 
@@ -183,13 +174,44 @@ class _AttendancePageState extends State<AttendancePage> {
         _status = '$action successful! Distance: ${distance.toStringAsFixed(2)} m';
         _checkedIn = action == 'checkin';
         if (_checkedIn) _lastCheckInTime = DateTime.now();
+        _loading = false;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$action successful!'), backgroundColor: Colors.green),
+      );
+
+      if (action == 'checkout') {
+        await Future.delayed(const Duration(seconds: 1));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QRScannerPage(userId: widget.userId, courseId: widget.courseId),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _status = 'Error: ${e.toString()}';
+        _loading = false;
       });
-    } finally {
-      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await _determinePosition();
+      setState(() {
+        _currentPosition = position;
+        _mapController.move(LatLng(position.latitude, position.longitude), 15);
+      });
+    } catch (e) {
+      setState(() {
+        _status = 'Error getting location: ${e.toString()}';
+      });
     }
   }
 
@@ -263,13 +285,13 @@ class _AttendancePageState extends State<AttendancePage> {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => StudentLMS(courseId: widget.courseId,
-                userId: widget.userId,
-              ),),
+              MaterialPageRoute(
+                builder: (context) => StudentLMS(courseId: widget.courseId, userId: widget.userId),
+              ),
             );
           },
         ),
-        title: const Text('3allemni Attendance', style: TextStyle(color: Colors.black)),
+        title: const Text('3alemni Attendance', style: TextStyle(color: Colors.black)),
         centerTitle: true,
         actions: [
           IconButton(
@@ -327,7 +349,7 @@ class _AttendancePageState extends State<AttendancePage> {
                     const ListTile(
                       leading: Icon(Icons.timer, color: Color(0xFF13A7B1)),
                       title: Text('Allowed Distance'),
-                      subtitle: Text('100 meters from center'),
+                      subtitle: Text('500 meters from center'),
                     ),
                   ],
                 ),

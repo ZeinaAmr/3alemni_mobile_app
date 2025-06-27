@@ -1,20 +1,20 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'AttendanceApp.dart';
 import 'Sidebar.dart';
-import 'FaceAttendanceApp.dart';
+import 'qr_generator.dart';
 
-class StudentLMS extends StatefulWidget {
+class TeacherLms extends StatefulWidget {
   final String courseId;
   final String userId;
 
-  const StudentLMS({Key? key, required this.courseId, required this.userId}) : super(key: key);
+  const TeacherLms({Key? key, required this.courseId, required this.userId}) : super(key: key);
 
   @override
-  _StudentLMSState createState() => _StudentLMSState();
+  _TeacherLMSState createState() => _TeacherLMSState();
 }
 
-class _StudentLMSState extends State<StudentLMS> {
+class _TeacherLMSState extends State<TeacherLms> {
   Map<String, dynamic>? courseData;
   bool isLoading = true;
 
@@ -124,8 +124,7 @@ class _StudentLMSState extends State<StudentLMS> {
                                     leading: const Icon(Icons.check_circle, color: Colors.green),
                                   ),
                                 ),
-                                if (section.startsWith("Week")) ...[
-                                  const SizedBox(height: 10),
+                                if (section.startsWith("Week"))
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFFF7C34),
@@ -139,15 +138,17 @@ class _StudentLMSState extends State<StudentLMS> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => AttendanceApp(
+                                          builder: (context) => QRGeneratorPage(
                                             userId: widget.userId,
                                             courseId: widget.courseId,
+                                            classId: widget.courseId, // or the actual class ID
                                           ),
                                         ),
                                       );
                                     },
+
                                     child: Text(
-                                      "Offline Attendance for $section",
+                                      "Take Attendance for $section",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -155,37 +156,6 @@ class _StudentLMSState extends State<StudentLMS> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF13A7B1),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      minimumSize: const Size(double.infinity, 50),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => FaceAttendanceApp(
-                                            userId: widget.userId,
-                                            courseId: widget.courseId,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      "Online Attendance for $section",
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           ),
