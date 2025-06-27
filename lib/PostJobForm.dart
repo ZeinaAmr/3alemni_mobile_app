@@ -1,7 +1,10 @@
 import 'package:allemni/SideBar_2.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class JobOfferPage extends StatefulWidget {
+  final String userId;
+  const JobOfferPage({Key? key, required this.userId}) : super(key: key);
   @override
   _JobOfferPageState createState() => _JobOfferPageState();
 }
@@ -10,28 +13,57 @@ class _JobOfferPageState extends State<JobOfferPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _skillsController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _requirementsController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
+  final TextEditingController _deadlineController = TextEditingController();
 
-  void _submitJob() {
+  void _submitJob() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Job posted successfully!', style: TextStyle(color: Colors.white)),
-          backgroundColor: Color(0xFF187E8A),
-        ),
-      );
-      _titleController.clear();
-      _descriptionController.clear();
-      _skillsController.clear();
-      _salaryController.clear();
+      try {
+        await FirebaseFirestore.instance.collection('job_offers').add({
+          'teacherId': widget.userId,
+          'title': _titleController.text.trim(),
+          'description': _descriptionController.text.trim(),
+          'type': _typeController.text.trim(),
+          'location': _locationController.text.trim(),
+          'requirements': _requirementsController.text.trim(),
+          'salary': _salaryController.text.trim(),
+          'Application deadline': _deadlineController.text.trim(),
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Job posted successfully!', style: TextStyle(color: Colors.white)),
+            backgroundColor: Color(0xFF187E8A),
+          ),
+        );
+
+        _titleController.clear();
+        _descriptionController.clear();
+        _typeController.clear();
+        _locationController.clear();
+        _requirementsController.clear();
+        _salaryController.clear();
+        _deadlineController.clear();
+      } catch (e) {
+        print("Error posting job: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to post job. Please try again.', style: TextStyle(color: Colors.white)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar2(),
+      drawer: Sidebar2(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -70,7 +102,11 @@ class _JobOfferPageState extends State<JobOfferPage> {
                   SizedBox(height: 10),
                   _buildTextField(_descriptionController, "Job Description", Icons.description, maxLines: 3),
                   SizedBox(height: 10),
-                  _buildTextField(_skillsController, "Required Skills", Icons.book_sharp),
+                  _buildTextField(_requirementsController, "Required Skills", Icons.book_sharp),
+                  SizedBox(height: 10),
+                  _buildTextField(_typeController, "Type", Icons.wifi),
+                  SizedBox(height: 10),
+                  _buildTextField(_locationController, "Location", Icons.location_on_sharp),
                   SizedBox(height: 10),
                   _buildTextField(_salaryController, "Salary", Icons.currency_pound, isNumber: true),
                   SizedBox(height: 10),

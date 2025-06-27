@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
-
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:allemni/SideBar_4.dart';
+// Make sure this file exists with JobDetailsPage class
 class JobDetailsPage extends StatefulWidget {
   final Map<String, String> job;
 
@@ -117,9 +117,8 @@ class _JobDetailsPageState extends State<JobDetailsPage> {
     );
   }
 }
-
 class AssistantsDashboard extends StatefulWidget {
-  final String userId; // updated name to match LoginPage
+  final String userId;
 
   const AssistantsDashboard({Key? key, required this.userId}) : super(key: key);
 
@@ -128,42 +127,10 @@ class AssistantsDashboard extends StatefulWidget {
 }
 
 class _AssistantsDashboardState extends State<AssistantsDashboard> {
-  final List<Map<String, String>> jobOffers = [
-    {
-      'title': 'Math Assistant',
-      'type': 'Online',
-      'location': 'Remote',
-      'teacher name': 'Ahmed Khafagah',
-      'description': 'Assist students in learning math topics online.',
-      'requirements': 'Strong math background, excellent communication skills.',
-      'salary': '\$20/hour',
-      'deadline': '10th Feb 2025'
-    },
-    {
-      'title': 'Physics Tutor',
-      'type': 'On-Ground',
-      'location': 'Cairo',
-      'teacher name': 'Maged Wageeh',
-      'description': 'Teach physics to high school students in person.',
-      'requirements': 'Physics degree, teaching experience.',
-      'salary': '\$30/hour',
-      'deadline': '15th Feb 2025'
-    },
-    {
-      'title': 'Programming Mentor',
-      'type': 'Online',
-      'location': 'Remote',
-      'teacher name': 'Maram Hamed',
-      'description': 'Guide students through programming assignments.',
-      'requirements': 'Proficiency in programming languages (Python, Java).',
-      'salary': '\$25/hour',
-      'deadline': '12th Feb 2025'
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Sidebar4(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -185,61 +152,84 @@ class _AssistantsDashboardState extends State<AssistantsDashboard> {
           const SizedBox(width: 10),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: jobOffers.length,
-          itemBuilder: (context, index) {
-            return Card(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFF187E8A),
-                  child: Icon(Icons.work, color: Colors.white),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('job_offers').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No job offers available."));
+          }
+
+          final jobOffers = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: jobOffers.length,
+            itemBuilder: (context, index) {
+              final job = jobOffers[index].data() as Map<String, dynamic>;
+
+              return Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                title: Text(
-                  jobOffers[index]['title']!,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                elevation: 4,
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                child: ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFF187E8A),
+                    child: Icon(Icons.work, color: Colors.white),
                   ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Type: ${jobOffers[index]['type']}'),
-                    Text('Location: ${jobOffers[index]['location']}'),
-                  ],
-                ),
-                trailing: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF7C34),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  title: Text(
+                    job['title'] ?? 'Untitled Job',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => JobDetailsPage(job: jobOffers[index]),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Type: ${job['type'] ?? 'N/A'}'),
+                      Text('Location: ${job['location'] ?? 'N/A'}'),
+                    ],
+                  ),
+                  trailing: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF7C34),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    );
-                  },
-                  child: const Text(
-                    'View',
-                    style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => JobDetailsPage(job: {
+                            'title': job['title'] ?? '',
+                            'type': job['type'] ?? '',
+                            'location': job['location'] ?? '',
+                            'teacher name': job['teacher name'] ?? '',
+                            'description': job['description'] ?? '',
+                            'requirements': job['requirements'] ?? '',
+                            'salary': job['salary'] ?? '',
+                            'deadline': job['deadline'] ?? '',
+                          }),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'View',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }
