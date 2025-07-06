@@ -75,11 +75,7 @@ class _CalendarPageState extends State<CalendarPage>
                 color: Colors.grey,
               ),
             ),
-            trailing: const Icon(
-              Icons.arrow_forward_ios,
-              color: Color(0xFFFF7C34),
-            ),
-            onTap: () {},
+
           ),
         );
       },

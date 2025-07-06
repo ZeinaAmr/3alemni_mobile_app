@@ -36,7 +36,7 @@ class Sidebar3 extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Zeina',
+                      'Admin',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20.0,
@@ -45,7 +45,7 @@ class Sidebar3 extends StatelessWidget {
                     ),
                     SizedBox(height: 5),
                     Text(
-                      'zeina@gmail.com',
+                      'admin@gmail.com',
                       style: TextStyle(
                         color: Colors.white70,
                         fontSize: 16.0,

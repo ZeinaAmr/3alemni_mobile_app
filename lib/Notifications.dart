@@ -38,11 +38,7 @@ class NotificationsPage extends StatelessWidget {
         backgroundColor: Colors.white,
         title: const Text(
           "Notications",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF187E8A),
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
       ),
@@ -74,10 +70,7 @@ class NotificationsPage extends StatelessWidget {
                 notification['time']!,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-              onTap: () {
-                // Optional: Add navigation to a detail view
-              },
+
             ),
           );
         },

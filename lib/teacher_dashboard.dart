@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar_2.dart';
 import 'create_course.dart';
+import 'CourseDetailsPage.dart';
 import 'teacher_lms.dart';
-import 'package:allemni/CourseDetailsPage.dart';
+
 class TeacherDashboard extends StatefulWidget {
   final String userId;
 
@@ -16,11 +16,20 @@ class TeacherDashboard extends StatefulWidget {
 
 class _TeacherDashboardState extends State<TeacherDashboard> {
   late Future<List<Map<String, dynamic>>> _coursesFuture;
+  List<Map<String, dynamic>> _allCourses = [];
+  String _searchText = '';
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _coursesFuture = fetchCourses();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.toLowerCase();
+      });
+    });
   }
 
   Future<List<Map<String, dynamic>>> fetchCourses() async {
@@ -33,54 +42,75 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
 
     for (var doc in querySnapshot.docs) {
       final data = doc.data();
-
-      // You can also fetch subject/center name here if needed
       courses.add({
         'title': data['title'] ?? 'Untitled',
         'center': data['centerId'] ?? 'Unknown Center',
         'timing': data['session'] ?? 'No Time',
         'students': data['students'] ?? 0,
-        'color': Colors.teal, // You may customize based on data
+        'color': Colors.teal,
       });
     }
+
+    setState(() {
+      _allCourses = courses;
+    });
 
     return courses;
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final filteredCourses = _allCourses.where((course) {
+      return course['title'].toLowerCase().contains(_searchText);
+    }).toList();
+
     return Scaffold(
       key: GlobalKey<ScaffoldState>(),
       drawer: Sidebar2(userId: widget.userId),
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Search courses...',
+            border: InputBorder.none,
+          ),
+        )
+            : const Text(
+          'Enrolled Courses',
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF187E8A)),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: const [
+        actions: [
           IconButton(
-            onPressed: null,
-            icon: Icon(Icons.search, color: Colors.black),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) _searchController.clear();
+              });
+            },
+            icon: Icon(_isSearching ? Icons.close : Icons.search,
+                color: Colors.black),
           ),
-          IconButton(
-            onPressed: null,
-            icon: Icon(Icons.filter_alt_rounded, color: Colors.black),
-          ),
-          SizedBox(width: 10),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Enrolled Courses",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
             const SizedBox(height: 20),
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
@@ -90,16 +120,14 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  if (_allCourses.isEmpty) {
                     return const Center(child: Text("No courses found."));
                   }
 
-                  final courses = snapshot.data!;
-
                   return ListView.builder(
-                    itemCount: courses.length,
+                    itemCount: filteredCourses.length,
                     itemBuilder: (context, index) {
-                      final course = courses[index];
+                      final course = filteredCourses[index];
                       return CourseCard(
                         title: course["title"],
                         center: course["center"],
@@ -110,14 +138,13 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Coursedetailspage(
-                                courseId: course["title"], // or use a real course ID if you have one
+                              builder: (context) => TeacherLms(
+                                courseId: course["title"],
                                 userId: widget.userId,
                               ),
                             ),
                           );
                         },
-
                       );
                     },
                   );
@@ -129,20 +156,21 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreateCoursePage(teacherId: widget.userId),
+                    builder: (context) =>
+                        CreateCoursePage(teacherId: widget.userId),
                   ),
                 );
               },
               backgroundColor: const Color(0xFFFF7C34),
-              child: const Icon(Icons.add, color: Colors.white,),
+              child: const Icon(Icons.add, color: Colors.white),
             ),
-
           ],
         ),
       ),
     );
   }
 }
+
 
 class CourseCard extends StatelessWidget {
   final String title;
@@ -191,13 +219,16 @@ class CourseCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                  Text(title,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
                   const SizedBox(height: 4),
                   Text("Center: $center", style: const TextStyle(fontSize: 14, color: Colors.grey)),
                   const SizedBox(height: 4),
                   Text("Timing: $timing", style: const TextStyle(fontSize: 14, color: Colors.grey)),
                   const SizedBox(height: 4),
-                  Text("$students Students Enrolled", style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  Text("$students Students Enrolled",
+                      style: const TextStyle(fontSize: 14, color: Colors.grey)),
                 ],
               ),
             ),

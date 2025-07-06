@@ -1,7 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'Sidebar.dart';
+import 'SideBar_2.dart';
 import 'qr_generator.dart';
 
 class TeacherLms extends StatefulWidget {
@@ -67,7 +67,7 @@ class _TeacherLMSState extends State<TeacherLms> {
         title: Text(isLoading ? "Loading..." : (courseData?["title"] ?? "Course")),
         backgroundColor: courseData != null ? Colors.teal : Colors.grey,
       ),
-      drawer: Sidebar(userId: widget.userId),
+      drawer: Sidebar2(userId: widget.userId),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : courseData == null

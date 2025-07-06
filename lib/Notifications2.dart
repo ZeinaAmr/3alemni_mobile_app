@@ -69,10 +69,9 @@ class NotificationsPage2 extends StatelessWidget {
                 notification['time']!,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-              onTap: () {
+
                 // Add navigation or details functionality here
-              },
+
             ),
           );
         },

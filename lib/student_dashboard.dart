@@ -16,10 +16,20 @@ class _StudentDashboardState extends State<StudentDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   late Future<List<Map<String, dynamic>>> _enrolledCoursesFuture;
 
+  List<Map<String, dynamic>> _allCourses = [];
+  String _searchText = '';
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _enrolledCoursesFuture = fetchEnrolledCourses();
+    _searchController.addListener(() {
+      setState(() {
+        _searchText = _searchController.text.toLowerCase();
+      });
+    });
   }
 
   Future<List<Map<String, dynamic>>> fetchEnrolledCourses() async {
@@ -32,32 +42,16 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
     for (var enrollment in enrollmentSnapshot.docs) {
       final courseId = enrollment['courseId'];
-
-      final courseDoc = await FirebaseFirestore.instance
-          .collection('courses')
-          .doc(courseId)
-          .get();
-
+      final courseDoc = await FirebaseFirestore.instance.collection('courses').doc(courseId).get();
       if (courseDoc.exists) {
         final courseData = courseDoc.data()!;
         final centerId = courseData['centerId'];
         final subjectId = courseData['subjectId'];
         final teacherId = courseData['teacherId'];
 
-        final centerDoc = await FirebaseFirestore.instance
-            .collection('centers')
-            .doc(centerId)
-            .get();
-
-        final subjectDoc = await FirebaseFirestore.instance
-            .collection('subjects')
-            .doc(subjectId)
-            .get();
-
-        final teacherDoc = await FirebaseFirestore.instance
-            .collection('teachers')
-            .doc(teacherId)
-            .get();
+        final centerDoc = await FirebaseFirestore.instance.collection('centers').doc(centerId).get();
+        final subjectDoc = await FirebaseFirestore.instance.collection('subjects').doc(subjectId).get();
+        final teacherDoc = await FirebaseFirestore.instance.collection('teachers').doc(teacherId).get();
 
         final centerName = centerDoc.data()?['name'] ?? 'Unknown Center';
         final subjectTitle = subjectDoc.data()?['title'] ?? 'Unknown Subject';
@@ -74,11 +68,25 @@ class _StudentDashboardState extends State<StudentDashboard> {
       }
     }
 
+    setState(() {
+      _allCourses = courses;
+    });
+
     return courses;
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> filteredCourses = _allCourses.where((course) {
+      return course['title'].toLowerCase().contains(_searchText);
+    }).toList();
+
     return Scaffold(
       key: _scaffoldKey,
       drawer: Sidebar(userId: widget.userId),
@@ -86,80 +94,74 @@ class _StudentDashboardState extends State<StudentDashboard> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: const [
-          IconButton(
-            onPressed: null,
-            icon: Icon(Icons.search, color: Colors.black),
+        centerTitle: true,
+        title: _isSearching
+            ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Search courses...',
+            border: InputBorder.none,
           ),
+        )
+            : const Text('Enrolled Courses',style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
+      ),
+        actions: [
           IconButton(
-            onPressed: null,
-            icon: Icon(Icons.filter_alt_rounded, color: Colors.black),
+            icon: Icon(_isSearching ? Icons.close : Icons.search, color: Colors.black),
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) _searchController.clear();
+              });
+            },
           ),
-          SizedBox(width: 10),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Enrolled Courses",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _enrolledCoursesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _enrolledCoursesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text("No enrolled courses found."));
-                  }
+            if (_allCourses.isEmpty) {
+              return const Center(child: Text("No enrolled courses found."));
+            }
 
-                  final courses = snapshot.data!;
-
-                  return ListView.builder(
-                    itemCount: courses.length,
-                    itemBuilder: (context, index) {
-                      final course = courses[index];
-                      return CourseCard(
-                        title: course['title'],
-                        center: course['center'],
-                        timing: course['timing'],
-                        students: course['students'],
-                        color: course['color'],
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => StudentLMS(
-                                courseId: course['courseId'],
-                                userId: widget.userId,
-
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+            return ListView.builder(
+              itemCount: filteredCourses.length,
+              itemBuilder: (context, index) {
+                final course = filteredCourses[index];
+                return CourseCard(
+                  title: course['title'],
+                  center: course['center'],
+                  timing: course['timing'],
+                  students: course['students'],
+                  color: course['color'],
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => StudentLMS(
+                          courseId: course['courseId'],
+                          userId: widget.userId,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
 }
+
 
 class CourseCard extends StatelessWidget {
   final String title;

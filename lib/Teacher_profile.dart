@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar_2.dart';
 
 class TeacherProfile extends StatelessWidget {
   final String userId;
+
   const TeacherProfile({Key? key, required this.userId}) : super(key: key);
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      return doc.exists ? doc.data() : null;
+    } catch (e) {
+      print('Error fetching user data: $e');
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,61 +25,77 @@ class TeacherProfile extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           "My Profile",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Color(0xFF187E8A)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF187E8A)),
         ),
         centerTitle: true,
-
         backgroundColor: Colors.white,
       ),
+      body: FutureBuilder<Map<String, dynamic>?>(
+        future: getUserData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage("assets/avatar.png"),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Zeina Amr",  // Replace with dynamic data
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              "zeina@example.com",  // Replace with dynamic data
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text("Role"),
-                subtitle: const Text("Teacher"), // Replace with dynamic data
-              ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditProfilePage(userId:userId)),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7C34),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('User data not found.'));
+          }
+
+          final userData = snapshot.data!;
+          final fullName = '${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}'.trim();
+          final email = userData['email'] ?? '';
+          final role = userData['role'] ?? 'Teacher';
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundImage: AssetImage("assets/default.jpg"),
                 ),
-              ),
-              child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 16),
+                Text(
+                  fullName.isNotEmpty ? fullName : 'No Name',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  email,
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text("Role"),
+                    subtitle: Text(role),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditProfilePage(userId: userId)),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF7C34),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
-
     );
   }
 }
+
 class EditProfilePage extends StatelessWidget {
   final String userId;
 
@@ -106,14 +134,14 @@ class EditProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              value: "Student",
+              value: "Teacher",
               items: const [
                 DropdownMenuItem(child: Text("Student"), value: "Student"),
                 DropdownMenuItem(child: Text("Teacher"), value: "Teacher"),
                 DropdownMenuItem(child: Text("Assistant"), value: "Assistant"),
               ],
               onChanged: (value) {
-                // Handle role change
+                // You can implement Firestore update logic here
               },
               decoration: InputDecoration(
                 labelText: "Role",

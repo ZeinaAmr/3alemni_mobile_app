@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'SideBar_2.dart';
 import 'PostJobForm.dart';
-
+import 'package:allemni/JobApplicantsPage.dart';
 class JobOffersPage extends StatelessWidget {
   final String userId;
+
 
   const JobOffersPage({Key? key, required this.userId}) : super(key: key);
 
@@ -68,6 +69,13 @@ class JobOffersPage extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
                   onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => JobApplicantsPage(),
+                      ),
+                    );
+
                     // You can implement a detailed view here
                   },
                 ),

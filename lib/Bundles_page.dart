@@ -17,7 +17,7 @@ class BundlesPage extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "3alemni",
+          "Our Bundles",
           style: TextStyle(
             color: Color(0xFF187E8A),
             fontWeight: FontWeight.bold,
@@ -29,15 +29,7 @@ class BundlesPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
           child: Column(
             children: const [
-              Text(
-                "OUR BUNDLES",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF187E8A),
-                ),
-              ),
-              SizedBox(height: 20),
+
               BundleCard(
                 title: "Starter Bundle",
                 price: "£200",
